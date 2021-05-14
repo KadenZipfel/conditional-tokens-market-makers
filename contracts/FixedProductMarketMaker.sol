@@ -121,30 +121,6 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         }
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal {
-        if (from != address(0)) {
-            withdrawFees(from);
-        }
-
-        uint totalSupply = totalSupply();
-        uint withdrawnFeesTransfer = totalSupply == 0 ?
-            amount :
-            feePoolWeight.mul(amount) / totalSupply;
-
-        if (from != address(0)) {
-            withdrawnFees[from] = withdrawnFees[from].sub(withdrawnFeesTransfer);
-            totalWithdrawnFees = totalWithdrawnFees.sub(withdrawnFeesTransfer);
-        } else {
-            feePoolWeight = feePoolWeight.add(withdrawnFeesTransfer);
-        }
-        if (to != address(0)) {
-            withdrawnFees[to] = withdrawnFees[to].add(withdrawnFeesTransfer);
-            totalWithdrawnFees = totalWithdrawnFees.add(withdrawnFeesTransfer);
-        } else {
-            feePoolWeight = feePoolWeight.sub(withdrawnFeesTransfer);
-        }
-    }
-
     function addFunding(uint addedFunds, uint[] calldata distributionHint)
         external
     {
@@ -208,6 +184,19 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
     function removeFunding(uint sharesToBurn)
         external
     {
+        withdrawFees(msg.sender);
+
+        uint totalSupply = totalSupply();
+        uint withdrawnFeesTransfer = totalSupply == 0 ?
+            amount :
+            feePoolWeight.mul(amount) / totalSupply;
+
+        withdrawnFees[from] = withdrawnFees[from].sub(withdrawnFeesTransfer);
+        totalWithdrawnFees = totalWithdrawnFees.sub(withdrawnFeesTransfer);
+
+        withdrawnFees[to] = withdrawnFees[to].add(withdrawnFeesTransfer);
+        totalWithdrawnFees = totalWithdrawnFees.add(withdrawnFeesTransfer);
+
         uint[] memory poolBalances = getPoolBalances();
 
         uint[] memory sendAmounts = new uint[](poolBalances.length);
