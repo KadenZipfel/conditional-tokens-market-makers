@@ -127,10 +127,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
             amount :
             feePoolWeight.mul(amount) / totalSupply;
 
-        if (from != address(0)) {
-            withdrawnFees[from] = withdrawnFees[from].sub(withdrawnFeesTransfer);
-            totalWithdrawnFees = totalWithdrawnFees.sub(withdrawnFeesTransfer);
-        } else {
+        if (from == address(0)) {
             feePoolWeight = feePoolWeight.add(withdrawnFeesTransfer);
         }
         if (to == address(0)) {
