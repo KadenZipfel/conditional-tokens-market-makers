@@ -129,15 +129,15 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         // if mint
         if (from == address(0) && to != address(0)) {
-            withdrawnFees[from] = withdrawnFees[from].sub(withdrawnFeesTransfer);
-            totalWithdrawnFees = totalWithdrawnFees.sub(withdrawnFeesTransfer);
+            withdrawnFees[to] = withdrawnFees[to].add(withdrawnFeesTransfer);
+            totalWithdrawnFees = totalWithdrawnFees.add(withdrawnFeesTransfer);
             feePoolWeight = feePoolWeight.add(withdrawnFeesTransfer);
         }
 
         // if burn
         if (to == address(0) && from != address(0)) {
-            withdrawnFees[to] = withdrawnFees[to].add(withdrawnFeesTransfer);
-            totalWithdrawnFees = totalWithdrawnFees.add(withdrawnFeesTransfer);
+            withdrawnFees[from] = withdrawnFees[from].sub(withdrawnFeesTransfer);
+            totalWithdrawnFees = totalWithdrawnFees.sub(withdrawnFeesTransfer);
             feePoolWeight = feePoolWeight.sub(withdrawnFeesTransfer);
         }
     }
