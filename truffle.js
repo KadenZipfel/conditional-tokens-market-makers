@@ -1,6 +1,7 @@
 require("chai/register-should");
 require("mocha-steps");
 const HDWalletProvider = require("truffle-hdwallet-provider");
+require("dotenv").config();
 
 const config = {
   networks: {
