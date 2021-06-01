@@ -48,6 +48,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
     using CeilDiv for uint;
 
     uint constant ONE = 10**18;
+    uint224 constant MULTIPLIER = 2**112;
 
     ConditionalTokens public conditionalTokens;
     IERC20 public collateralToken;
@@ -136,10 +137,10 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         // if transfer
         if (from != address(0) && to != address(0)) {
-            uint balancePercentage = amount.mul(100) / balanceOf(from)
+            uint balancePercentage = amount.mul(MULTIPLIER) / balanceOf(from);
 
-            withdrawnFees[to] = withdrawnFees[to].add(withdrawnFees[from].mul(balancePercentage) / 100);
-            withdrawnFees[from] = withdrawnFees[from].sub(withdrawnFees[from].mul(balancePercentage) / 100);
+            withdrawnFees[to] = withdrawnFees[to].add(withdrawnFees[from].mul(balancePercentage) / MULTIPLIER);
+            withdrawnFees[from] = withdrawnFees[from].sub(withdrawnFees[from].mul(balancePercentage) / MULTIPLIER);
         }
 
         // if burn
