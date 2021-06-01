@@ -136,8 +136,10 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         // if transfer
         if (from != address(0) && to != address(0)) {
-            withdrawnFees[to] = withdrawnFees[to].add(withdrawnFeesTransfer);
-            withdrawnFees[from] = withdrawnFees[from].sub(withdrawnFeesTransfer);
+            uint balancePercentage = amount.mul(100) / balanceOf(from)
+
+            withdrawnFees[to] = withdrawnFees[to].add(withdrawnFees[from].mul(balancePercentage) / 100);
+            withdrawnFees[from] = withdrawnFees[from].sub(withdrawnFees[from].mul(balancePercentage) / 100);
         }
 
         // if burn
