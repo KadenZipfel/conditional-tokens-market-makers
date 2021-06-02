@@ -146,9 +146,14 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         }
     }
 
+    // TODO: Remove - For testing purposes only
+    function setRewardToken(address token) public {
+        rewardToken = IERC20(token);
+    }
+
     // TODO: Replace usage of hardcoded token
     function addRewards(uint256 amount) public {
-        IERC20(rewardToken).transferFrom(msg.sender, address(this), amount);
+        rewardToken.transferFrom(msg.sender, address(this), amount);
         rewardPoolWeight.add(amount);
     }
 
