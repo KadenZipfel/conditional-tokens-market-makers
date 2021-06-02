@@ -49,7 +49,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
     uint constant ONE = 10**18;
 
-    // TODO: Replace hardcoded reward token
+    // TODO: Remove - For testing purposes only
     IERC20 public rewardToken;
 
     ConditionalTokens public conditionalTokens;
@@ -151,7 +151,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         rewardToken = IERC20(token);
     }
 
-    // TODO: Replace usage of hardcoded token
+    // TODO: Remove - For testing purposes only
     function addRewards(uint256 amount) public {
         rewardToken.transferFrom(msg.sender, address(this), amount);
         rewardPoolWeight.add(amount);
