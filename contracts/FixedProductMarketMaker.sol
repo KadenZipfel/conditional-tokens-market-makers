@@ -50,7 +50,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
     uint constant ONE = 10**18;
 
     // TODO: Replace hardcoded reward token
-    address rewardToken = '0xa8b4b1dc4efc8f8c48e430a4faaaf36075670139';
+    IERC20 public rewardToken;
 
     ConditionalTokens public conditionalTokens;
     IERC20 public collateralToken;
@@ -142,20 +142,20 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         if(withdrawableAmount > 0){
             withdrawnRewards[account] = rawAmount;
             totalWithdrawnRewards = totalWithdrawnRewards.add(withdrawableAmount);
-            require(rewardToken.transfer(account, withdrawableAmount), "withdrawal transfer failed");
+            require(IERC20(rewardToken).transfer(account, withdrawableAmount), "withdrawal transfer failed");
         }
     }
 
     // TODO: Replace usage of hardcoded token
     function addRewards(uint256 amount) public {
-        ERC20(rewardToken).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(rewardToken).transferFrom(msg.sender, address(this), amount);
         rewardPoolWeight.add(amount);
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal {
         if (from != address(0)) {
             withdrawFees(from);
-            withdrawRewards(from)
+            withdrawRewards(from);
         }
 
         uint totalSupply = totalSupply();
