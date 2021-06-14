@@ -277,9 +277,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         conditionalTokens.safeTransferFrom(msg.sender, address(this), positionIds[outcomeIndex], outcomeTokensToSell, "");
 
         uint feeAmount = returnAmount.mul(fee) / (ONE.sub(fee));
-        // TODO: Remove fee amount from outcome tokens
-        uint returnAmountPlusFees = returnAmount.add(feeAmount);
-        mergePositionsThroughAllConditions(returnAmountPlusFees);
+        mergePositionsThroughAllConditions(returnAmount);
 
         require(collateralToken.transfer(msg.sender, returnAmount), "return transfer failed");
 
