@@ -262,10 +262,8 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         require(collateralToken.transferFrom(msg.sender, address(this), investmentAmount), "cost transfer failed");
 
         uint feeAmount = investmentAmount.mul(fee) / ONE;
-        // TODO: Remove fee amount from outcome tokens
-        uint investmentAmountMinusFees = investmentAmount.sub(feeAmount);
-        require(collateralToken.approve(address(conditionalTokens), investmentAmountMinusFees), "approval for splits failed");
-        splitPositionThroughAllConditions(investmentAmountMinusFees);
+        require(collateralToken.approve(address(conditionalTokens), investmentAmount), "approval for splits failed");
+        splitPositionThroughAllConditions(investmentAmount);
 
         conditionalTokens.safeTransferFrom(address(this), msg.sender, positionIds[outcomeIndex], outcomeTokensToBuy, "");
 
