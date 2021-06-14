@@ -53,13 +53,10 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
     IERC20 public collateralToken;
     bytes32[] public conditionIds;
     uint public fee;
-    uint internal feePoolWeight;
 
     uint[] outcomeSlotCounts;
     bytes32[][] collectionIds;
     uint[] positionIds;
-    mapping (address => uint256) withdrawnFees;
-    uint internal totalWithdrawnFees;
 
     function getPoolBalances() private view returns (uint[] memory) {
         address[] memory thises = new address[](positionIds.length);
@@ -99,49 +96,6 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
             for(uint j = 0; j < collectionIds[i].length; j++) {
                 conditionalTokens.mergePositions(collateralToken, collectionIds[i][j], conditionIds[i], partition, amount);
             }
-        }
-    }
-
-    function collectedFees() external view returns (uint) {
-        return feePoolWeight.sub(totalWithdrawnFees);
-    }
-
-    function feesWithdrawableBy(address account) public view returns (uint) {
-        uint rawAmount = feePoolWeight.mul(balanceOf(account)) / totalSupply();
-        return rawAmount.sub(withdrawnFees[account]);
-    }
-
-    function withdrawFees(address account) public {
-        uint rawAmount = feePoolWeight.mul(balanceOf(account)) / totalSupply();
-        uint withdrawableAmount = rawAmount.sub(withdrawnFees[account]);
-        if(withdrawableAmount > 0){
-            withdrawnFees[account] = rawAmount;
-            totalWithdrawnFees = totalWithdrawnFees.add(withdrawableAmount);
-            require(collateralToken.transfer(account, withdrawableAmount), "withdrawal transfer failed");
-        }
-    }
-
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal {
-        if (from != address(0)) {
-            withdrawFees(from);
-        }
-
-        uint totalSupply = totalSupply();
-        uint withdrawnFeesTransfer = totalSupply == 0 ?
-            amount :
-            feePoolWeight.mul(amount) / totalSupply;
-
-        if (from != address(0)) {
-            withdrawnFees[from] = withdrawnFees[from].sub(withdrawnFeesTransfer);
-            totalWithdrawnFees = totalWithdrawnFees.sub(withdrawnFeesTransfer);
-        } else {
-            feePoolWeight = feePoolWeight.add(withdrawnFeesTransfer);
-        }
-        if (to != address(0)) {
-            withdrawnFees[to] = withdrawnFees[to].add(withdrawnFeesTransfer);
-            totalWithdrawnFees = totalWithdrawnFees.add(withdrawnFeesTransfer);
-        } else {
-            feePoolWeight = feePoolWeight.sub(withdrawnFeesTransfer);
         }
     }
 
@@ -308,7 +262,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         require(collateralToken.transferFrom(msg.sender, address(this), investmentAmount), "cost transfer failed");
 
         uint feeAmount = investmentAmount.mul(fee) / ONE;
-        feePoolWeight = feePoolWeight.add(feeAmount);
+        // TODO: Remove fee amount from outcome tokens
         uint investmentAmountMinusFees = investmentAmount.sub(feeAmount);
         require(collateralToken.approve(address(conditionalTokens), investmentAmountMinusFees), "approval for splits failed");
         splitPositionThroughAllConditions(investmentAmountMinusFees);
@@ -325,7 +279,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         conditionalTokens.safeTransferFrom(msg.sender, address(this), positionIds[outcomeIndex], outcomeTokensToSell, "");
 
         uint feeAmount = returnAmount.mul(fee) / (ONE.sub(fee));
-        feePoolWeight = feePoolWeight.add(feeAmount);
+        // TODO: Remove fee amount from outcome tokens
         uint returnAmountPlusFees = returnAmount.add(feeAmount);
         mergePositionsThroughAllConditions(returnAmountPlusFees);
 
@@ -376,11 +330,8 @@ contract FixedProductMarketMakerData {
     IERC20 internal collateralToken;
     bytes32[] internal conditionIds;
     uint internal fee;
-    uint internal feePoolWeight;
 
     uint[] internal outcomeSlotCounts;
     bytes32[][] internal collectionIds;
     uint[] internal positionIds;
-    mapping (address => uint256) internal withdrawnFees;
-    uint internal totalWithdrawnFees;
 }
