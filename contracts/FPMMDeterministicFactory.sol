@@ -24,7 +24,8 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
 
     FixedProductMarketMaker public implementationMaster;
     address internal currentFunder;
-    uint protocolFee;
+    uint protocolFeeDenominator;
+    bool protocolFeeOn;
 
     constructor() public {
         implementationMaster = new FixedProductMarketMaker();
@@ -154,5 +155,10 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         }
 
         return fixedProductMarketMaker;
+    }
+
+
+    function setProtocolFee() external onlyOwner {
+
     }
 }
