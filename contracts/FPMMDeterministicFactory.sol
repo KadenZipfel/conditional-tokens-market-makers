@@ -166,6 +166,7 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
     }
 
     function setProtocolFeeSetter(address _protocolFeeSetter) external onlyProtocolFeeSetter {
+        require(_protocolFeeSetter != address(0), 'cannot set protocolFeeSetter to zero address');
         protocolFeeSetter = _protocolFeeSetter;
     }
 
