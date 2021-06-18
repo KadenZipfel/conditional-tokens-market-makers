@@ -157,12 +157,16 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         return fixedProductMarketMaker;
     }
 
-    function setProtocolFeeOn(bool on) external onlyProtocolFeeSetter {
-        protocolFeeOn = on;
+    function setProtocolFeeOn(bool _protocolFeeOn) external onlyProtocolFeeSetter {
+        protocolFeeOn = _protocolFeeOn;
     }
 
-    function setProtocolFee() external onlyProtocolFeeSetter {
+    function setProtocolFeeDenominator(uint8 _protocolFeeDenominator) external onlyProtocolFeeSetter {
+        protocolFeeDenominator = _protocolFeeDenominator;
+    }
 
+    function setProtocolFeeSetter(address _protocolFeeSetter) external onlyProtocolFeeSetter {
+        protocolFeeSetter = _protocolFeeSetter;
     }
 
     modifier onlyProtocolFeeSetter {
