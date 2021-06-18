@@ -270,13 +270,26 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
 
         require(collateralToken.transferFrom(msg.sender, address(this), investmentAmount), "cost transfer failed");
 
-        uint feeAmount = investmentAmount.mul(fee) / ONE;
-        require(collateralToken.approve(address(conditionalTokens), investmentAmount), "approval for splits failed");
-        splitPositionThroughAllConditions(investmentAmount);
+        uint protocolFeeAmount;
+        uint lpFeeAmount;
+
+        uint totalFeeAmount = investmentAmount.mul(fee) / ONE;
+        uint totalInvestmentAmount = investmentAmount;
+
+        if (protocolFeeOn) {
+            protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
+            lpFeeAmount = totalFeeAmount.sub(protocolFeeAmount);
+            totalInvestmentAmount = totalInvestmentAmount.sub(protocolFeeAmount);
+        } else {
+            lpFeeAmount = totalFeeAmount;
+        }
+
+        require(collateralToken.approve(address(conditionalTokens), totalInvestmentAmount), "approval for splits failed");
+        splitPositionThroughAllConditions(totalInvestmentAmount);
 
         conditionalTokens.safeTransferFrom(address(this), msg.sender, positionIds[outcomeIndex], outcomeTokensToBuy, "");
 
-        emit FPMMBuy(msg.sender, investmentAmount, feeAmount, outcomeIndex, outcomeTokensToBuy);
+        emit FPMMBuy(msg.sender, investmentAmount, lpFeeAmount, outcomeIndex, outcomeTokensToBuy);
     }
 
     function sell(uint returnAmount, uint outcomeIndex, uint maxOutcomeTokensToSell) external {
