@@ -158,6 +158,11 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
     }
 
 
+    function setProtocolFeeOn(switch bool) external onlyOwner {
+        protocolFeeOn = switch;
+    }
+
+
     function setProtocolFee() external onlyOwner {
 
     }
