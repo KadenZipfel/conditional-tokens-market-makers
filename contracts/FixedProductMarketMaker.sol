@@ -58,6 +58,8 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
     bytes32[][] collectionIds;
     uint[] positionIds;
 
+    uint8 public protocolFeeDenominator;
+
     function getPoolBalances() private view returns (uint[] memory) {
         address[] memory thises = new address[](positionIds.length);
         for(uint i = 0; i < positionIds.length; i++) {
@@ -330,4 +332,6 @@ contract FixedProductMarketMakerData {
     uint[] internal outcomeSlotCounts;
     bytes32[][] internal collectionIds;
     uint[] internal positionIds;
+
+    uint8 public protocolFeeDenominator;
 }
