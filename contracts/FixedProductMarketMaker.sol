@@ -6,6 +6,7 @@ import { ConditionalTokens } from "@gnosis.pm/conditional-tokens-contracts/contr
 import { CTHelpers } from "@gnosis.pm/conditional-tokens-contracts/contracts/CTHelpers.sol";
 import { ERC1155TokenReceiver } from "@gnosis.pm/conditional-tokens-contracts/contracts/ERC1155/ERC1155TokenReceiver.sol";
 import { ERC20 } from "./ERC20.sol";
+import { Initializable } from "./library/Initializable.sol";
 
 
 library CeilDiv {
@@ -17,7 +18,7 @@ library CeilDiv {
 }
 
 
-contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
+contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
     event FPMMFundingAdded(
         address indexed funder,
         uint[] amountsAdded,
@@ -59,6 +60,10 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
     uint[] positionIds;
 
     uint8 public protocolFeeDenominator;
+
+    function initialize(uint8 _protocolFeeDenominator) initializer public {
+        protocolFeeDenominator = _protocolFeeDenominator;
+    }
 
     function getPoolBalances() private view returns (uint[] memory) {
         address[] memory thises = new address[](positionIds.length);
