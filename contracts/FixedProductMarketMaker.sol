@@ -282,6 +282,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
             protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
             lpFeeAmount = totalFeeAmount.sub(protocolFeeAmount);
             totalInvestmentAmount = totalInvestmentAmount.sub(protocolFeeAmount);
+            require(collateralToken.transfer(factory, protocolFeeAmount), "protocol fee transfer failed");
         } else {
             lpFeeAmount = totalFeeAmount;
         }
