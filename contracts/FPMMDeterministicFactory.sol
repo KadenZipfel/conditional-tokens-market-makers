@@ -116,7 +116,6 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         return this.onERC1155BatchReceived.selector;
     }
 
-
     function create2FixedProductMarketMaker(
         uint saltNonce,
         ConditionalTokens conditionalTokens,
@@ -158,13 +157,16 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         return fixedProductMarketMaker;
     }
 
-
-    function setProtocolFeeOn(bool on) external {
+    function setProtocolFeeOn(bool on) external onlyProtocolFeeSetter {
         protocolFeeOn = on;
     }
 
+    function setProtocolFee() external onlyProtocolFeeSetter {
 
-    function setProtocolFee() external {
+    }
 
+    modifier onlyProtocolFeeSetter {
+        require(msg.sender == protocolFeeSetter, 'onlyProtocolFeeSetter');
+        _;
     }
 }
