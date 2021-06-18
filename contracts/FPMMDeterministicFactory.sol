@@ -145,7 +145,7 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
             fee
         );
 
-        fixedProductMarketMaker.initialize(protocolFeeDenominator);
+        fixedProductMarketMaker.initialize(protocolFeeOn, protocolFeeDenominator);
 
         if (initialFunds > 0) {
             currentFunder = msg.sender;
