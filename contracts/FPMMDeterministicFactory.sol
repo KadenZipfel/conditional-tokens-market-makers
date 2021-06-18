@@ -23,11 +23,13 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
 
     FixedProductMarketMaker public implementationMaster;
     address internal currentFunder;
-    uint protocolFeeDenominator;
-    bool protocolFeeOn;
+    uint public protocolFeeDenominator;
+    bool public protocolFeeOn;
+    address public protocolFeeSetter;
 
-    constructor() public {
+    constructor(address _protocolFeeSetter) public {
         implementationMaster = new FixedProductMarketMaker();
+        protocolFeeSetter = _protocolFeeSetter;
     }
 
     function cloneConstructor(bytes calldata consData) external {
@@ -157,12 +159,12 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
     }
 
 
-    function setProtocolFeeOn(switch bool) external onlyOwner {
+    function setProtocolFeeOn(bool switch) external {
         protocolFeeOn = switch;
     }
 
 
-    function setProtocolFee() external onlyOwner {
+    function setProtocolFee() external {
 
     }
 }
