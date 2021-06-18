@@ -59,9 +59,11 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
     bytes32[][] collectionIds;
     uint[] positionIds;
 
+    bool public protocolFeeOn;
     uint8 public protocolFeeDenominator;
 
-    function initialize(uint8 _protocolFeeDenominator) initializer public {
+    function initialize(bool _protocolFeeOn, uint8 _protocolFeeDenominator) initializer public {
+        protocolFeeOn = _protocolFeeOn;
         protocolFeeDenominator = _protocolFeeDenominator;
     }
 
