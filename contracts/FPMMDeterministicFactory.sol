@@ -159,6 +159,16 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         return fixedProductMarketMaker;
     }
 
+    function withdrawProtocolFees(address[] _tokens, address _recipient) onlyProtocolFeeSetter {
+        for (uint i = 0; i < _tokens.length; i++) {
+            ERC20 _token = ERC20(_tokens[i]);
+            uint _tokenBalance = _token.balanceOf(address(this));
+            if (_tokenBalance > 0) {
+                _token.transfer(_recipient, _tokenBalance);
+            }
+        }
+    }
+
     function setProtocolFeeOn(bool _protocolFeeOn) external onlyProtocolFeeSetter {
         protocolFeeOn = _protocolFeeOn;
     }
