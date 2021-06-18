@@ -23,7 +23,7 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
 
     FixedProductMarketMaker public implementationMaster;
     address internal currentFunder;
-    uint public protocolFeeDenominator;
+    uint8 public protocolFeeDenominator;
     bool public protocolFeeOn;
     address public protocolFeeSetter;
 
@@ -162,6 +162,7 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
     }
 
     function setProtocolFeeDenominator(uint8 _protocolFeeDenominator) external onlyProtocolFeeSetter {
+        require(_protocolFeeDenominator >= 4, 'max 25% protocol fee');
         protocolFeeDenominator = _protocolFeeDenominator;
     }
 
