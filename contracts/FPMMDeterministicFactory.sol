@@ -28,9 +28,9 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
     bool public protocolFeeOn;
     address public protocolFeeSetter;
 
-    constructor(address _protocolFeeSetter) public {
+    constructor() public {
         implementationMaster = new FixedProductMarketMaker();
-        protocolFeeSetter = _protocolFeeSetter;
+        protocolFeeSetter = msg.sender;
     }
 
     function cloneConstructor(bytes calldata consData) external {
