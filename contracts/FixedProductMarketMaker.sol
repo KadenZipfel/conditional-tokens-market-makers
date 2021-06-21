@@ -181,6 +181,8 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
     function removeFunding(uint sharesToBurn)
         external
     {
+        uint min = 2**256 - 1;
+
         uint[] memory poolBalances = getPoolBalances();
         uint[] memory userBalances = getPoolBalancesOf(msg.sender);
 
@@ -191,6 +193,9 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
         for(uint i = 0; i < poolBalances.length; i++) {
             sendAmounts[i] = poolBalances[i].mul(sharesToBurn) / poolShareSupply;
             totalOutcomeBalances[i] = sendAmounts[i].add(userBalances[i]);
+            if (totalOutcomeBalances[i] < min) {
+                min = totalOutcomeBalances[i];
+            }
         }
 
         uint collateralRemovedFromFeePool = collateralToken.balanceOf(address(this));
