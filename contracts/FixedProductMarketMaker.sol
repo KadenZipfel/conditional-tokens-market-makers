@@ -292,7 +292,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
 
         conditionalTokens.safeTransferFrom(address(this), msg.sender, positionIds[outcomeIndex], outcomeTokensToBuy, "");
 
-        emit FPMMBuy(msg.sender, investmentAmount, lpFeeAmount, outcomeIndex, outcomeTokensToBuy);
+        emit FPMMBuy(msg.sender, investmentAmount, totalFeeAmount, outcomeIndex, outcomeTokensToBuy);
     }
 
     function sell(uint returnAmount, uint outcomeIndex, uint maxOutcomeTokensToSell) external {
@@ -320,7 +320,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
 
         require(collateralToken.transfer(msg.sender, totalReturnAmount), "return transfer failed");
 
-        emit FPMMSell(msg.sender, totalReturnAmount, lpFeeAmount, outcomeIndex, outcomeTokensToSell);
+        emit FPMMSell(msg.sender, totalReturnAmount, totalFeeAmount, outcomeIndex, outcomeTokensToSell);
     }
 }
 
