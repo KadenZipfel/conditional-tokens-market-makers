@@ -7,6 +7,7 @@ import { CTHelpers } from "@gnosis.pm/conditional-tokens-contracts/contracts/CTH
 import { Create2CloneFactory } from "./Create2CloneFactory.sol";
 import { FixedProductMarketMaker, FixedProductMarketMakerData } from "./FixedProductMarketMaker.sol";
 import { ERC1155TokenReceiver } from "@gnosis.pm/conditional-tokens-contracts/contracts/ERC1155/ERC1155TokenReceiver.sol";
+import { ERC20 } from "./ERC20.sol";
 
 
 contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMakerData, ERC1155TokenReceiver {
@@ -159,7 +160,7 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         return fixedProductMarketMaker;
     }
 
-    function withdrawProtocolFees(address[] _tokens, address _recipient) onlyProtocolFeeSetter {
+    function withdrawProtocolFees(address[] calldata _tokens, address _recipient) external onlyProtocolFeeSetter {
         for (uint i = 0; i < _tokens.length; i++) {
             ERC20 _token = ERC20(_tokens[i]);
             uint _tokenBalance = _token.balanceOf(address(this));
