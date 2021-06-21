@@ -370,5 +370,7 @@ contract FixedProductMarketMakerData {
     bytes32[][] internal collectionIds;
     uint[] internal positionIds;
 
+    bool public protocolFeeOn;
     uint8 public protocolFeeDenominator;
+    address public factory;
 }
