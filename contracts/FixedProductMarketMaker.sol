@@ -77,6 +77,14 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
         return conditionalTokens.balanceOfBatch(thises, positionIds);
     }
 
+    function getPoolBalancesOf(address user) private view returns (uint[] memory) {
+        address[] memory thises = new address[](positionIds.length);
+        for(uint i = 0; i < positionIds.length; i++) {
+            thises[i] = user;
+        }
+        return conditionalTokens.balanceOfBatch(thises, positionIds);
+    }
+
     function generateBasicPartition(uint outcomeSlotCount)
         private
         pure
