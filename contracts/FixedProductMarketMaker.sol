@@ -278,7 +278,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
         uint totalFeeAmount = investmentAmount.mul(fee) / ONE;
         uint totalInvestmentAmount = investmentAmount;
 
-        if (protocolFeeOn) {
+        if (protocolFeeOn && protocolFeeDenominator > 0) {
             protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
             lpFeeAmount = totalFeeAmount.sub(protocolFeeAmount);
             totalInvestmentAmount = totalInvestmentAmount.sub(protocolFeeAmount);
@@ -307,7 +307,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
         uint totalFeeAmount = returnAmount.mul(fee) / (ONE.sub(fee));
         uint totalReturnAmount = returnAmount;
 
-        if (protocolFeeOn) {
+        if (protocolFeeOn && protocolFeeDenominator > 0) {
             protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
             lpFeeAmount = totalFeeAmount.sub(protocolFeeAmount);
             totalReturnAmount = totalReturnAmount.sub(protocolFeeAmount);
