@@ -199,6 +199,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
             }
         }
 
+        // Only do if there is a balance for each outcome token
         if (min > 0) {
             for(uint i = 0; i < poolBalances.length; i++) {
                 if (sendAmounts[i] < min) {
@@ -207,13 +208,16 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
                 sendAmounts[i] = sendAmounts[i].sub(min);
             }
 
+            // Transfer necessary outcome tokens from user
             conditionalTokens.safeBatchTransferFrom(msg.sender, address(this), positionIds, transferAmounts, "");
 
+            // Merge outcome tokens into pool tokens
             mergePositionsThroughAllConditions(min);
         }
 
         uint collateralRemovedFromFeePool = collateralToken.balanceOf(address(this));
 
+        // Burn initial amount + merged outcome tokens
         uint totalSharesToBurn = sharesToBurn.add(min);
 
         _burn(msg.sender, totalSharesToBurn);
