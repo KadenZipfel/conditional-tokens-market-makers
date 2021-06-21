@@ -182,12 +182,15 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
         external
     {
         uint[] memory poolBalances = getPoolBalances();
+        uint[] memory userBalances = getPoolBalancesOf(msg.sender);
 
         uint[] memory sendAmounts = new uint[](poolBalances.length);
+        uint[] memory totalOutcomeBalances = new uint[](poolBalances.length);
 
         uint poolShareSupply = totalSupply();
         for(uint i = 0; i < poolBalances.length; i++) {
             sendAmounts[i] = poolBalances[i].mul(sharesToBurn) / poolShareSupply;
+            totalOutcomeBalances[i] = sendAmounts[i].add(userBalances[i]);
         }
 
         uint collateralRemovedFromFeePool = collateralToken.balanceOf(address(this));
