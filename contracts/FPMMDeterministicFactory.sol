@@ -52,6 +52,8 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         conditionIds = _conditionIds;
         fee = _fee;
 
+        factoryAddress = address(this);
+
         uint atomicOutcomeSlotCount = 1;
         outcomeSlotCounts = new uint[](conditionIds.length);
         for (uint i = 0; i < conditionIds.length; i++) {
@@ -145,8 +147,6 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
             conditionIds,
             fee
         );
-
-        fixedProductMarketMaker.initialize();
 
         if (initialFunds > 0) {
             currentFunder = msg.sender;

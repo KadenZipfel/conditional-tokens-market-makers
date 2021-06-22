@@ -6,7 +6,6 @@ import { ConditionalTokens } from "@gnosis.pm/conditional-tokens-contracts/contr
 import { CTHelpers } from "@gnosis.pm/conditional-tokens-contracts/contracts/CTHelpers.sol";
 import { ERC1155TokenReceiver } from "@gnosis.pm/conditional-tokens-contracts/contracts/ERC1155/ERC1155TokenReceiver.sol";
 import { ERC20 } from "./ERC20.sol";
-import { Initializable } from "./library/Initializable.sol";
 import { FPMMDeterministicFactory } from "./FPMMDeterministicFactory.sol";
 
 
@@ -19,7 +18,7 @@ library CeilDiv {
 }
 
 
-contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
+contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
     event FPMMFundingAdded(
         address indexed funder,
         uint[] amountsAdded,
@@ -61,12 +60,6 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
     uint[] positionIds;
 
     address public factoryAddress;
-    FPMMDeterministicFactory public factory;
-
-    function initialize() initializer public {
-        factoryAddress = msg.sender;
-        factory = FPMMDeterministicFactory(msg.sender);
-    }
 
     function getPoolBalances() private view returns (uint[] memory) {
         address[] memory thises = new address[](positionIds.length);
@@ -277,6 +270,8 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
         uint totalFeeAmount = investmentAmount.mul(fee) / ONE;
         uint totalInvestmentAmount = investmentAmount;
 
+        FPMMDeterministicFactory factory = FPMMDeterministicFactory(factoryAddress);
+
         bool protocolFeeOn = factory.protocolFeeOn();
         uint8 protocolFeeDenominator = factory.protocolFeeDenominator();
 
@@ -308,6 +303,8 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
 
         uint totalFeeAmount = returnAmount.mul(fee) / (ONE.sub(fee));
         uint totalReturnAmount = returnAmount;
+
+        FPMMDeterministicFactory factory = FPMMDeterministicFactory(factoryAddress);
 
         bool protocolFeeOn = factory.protocolFeeOn();
         uint8 protocolFeeDenominator = factory.protocolFeeDenominator();
@@ -376,5 +373,4 @@ contract FixedProductMarketMakerData {
     uint[] internal positionIds;
 
     address public factoryAddress;
-    FPMMDeterministicFactory public factory;
 }
