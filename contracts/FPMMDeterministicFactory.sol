@@ -38,8 +38,9 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
             ConditionalTokens _conditionalTokens,
             IERC20 _collateralToken,
             bytes32[] memory _conditionIds,
-            uint _fee
-        ) = abi.decode(consData, (ConditionalTokens, IERC20, bytes32[], uint));
+            uint _fee,
+            address _factoryAddress
+        ) = abi.decode(consData, (ConditionalTokens, IERC20, bytes32[], uint, address));
 
         _supportedInterfaces[_INTERFACE_ID_ERC165] = true;
         _supportedInterfaces[
@@ -51,8 +52,7 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         collateralToken = _collateralToken;
         conditionIds = _conditionIds;
         fee = _fee;
-
-        factoryAddress = address(this);
+        factoryAddress = _factoryAddress;
 
         uint atomicOutcomeSlotCount = 1;
         outcomeSlotCounts = new uint[](conditionIds.length);
@@ -136,7 +136,8 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
                 conditionalTokens,
                 collateralToken,
                 conditionIds,
-                fee
+                fee,
+                address(this)
             ))
         );
         emit FixedProductMarketMakerCreation(
