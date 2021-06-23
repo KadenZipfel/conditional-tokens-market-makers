@@ -48,6 +48,8 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
     using SafeMath for uint;
     using CeilDiv for uint;
 
+    string public name = "Omen LP";
+
     uint constant ONE = 10**18;
 
     ConditionalTokens public conditionalTokens;
