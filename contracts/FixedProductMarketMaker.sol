@@ -50,6 +50,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
     string public name = "Omen LP";
     string public symbol = "OLP";
+    uint8 public decimals = 18;
 
     uint constant ONE = 10**18;
 
