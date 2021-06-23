@@ -6,7 +6,7 @@ import { ConditionalTokens } from "@gnosis.pm/conditional-tokens-contracts/contr
 import { CTHelpers } from "@gnosis.pm/conditional-tokens-contracts/contracts/CTHelpers.sol";
 import { ERC1155TokenReceiver } from "@gnosis.pm/conditional-tokens-contracts/contracts/ERC1155/ERC1155TokenReceiver.sol";
 import { ERC20 } from "./ERC20.sol";
-import { Initializable } from "./library/Initializable.sol";
+import { FPMMDeterministicFactory } from "./FPMMDeterministicFactory.sol";
 
 
 library CeilDiv {
@@ -18,7 +18,7 @@ library CeilDiv {
 }
 
 
-contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
+contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
     event FPMMFundingAdded(
         address indexed funder,
         uint[] amountsAdded,
@@ -59,15 +59,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
     bytes32[][] collectionIds;
     uint[] positionIds;
 
-    bool public protocolFeeOn;
-    uint8 public protocolFeeDenominator;
-    address public factory;
-
-    function initialize(bool _protocolFeeOn, uint8 _protocolFeeDenominator) initializer public {
-        protocolFeeOn = _protocolFeeOn;
-        protocolFeeDenominator = _protocolFeeDenominator;
-        factory = msg.sender;
-    }
+    address public factoryAddress;
 
     function getPoolBalances() private view returns (uint[] memory) {
         address[] memory thises = new address[](positionIds.length);
@@ -314,11 +306,16 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
         uint totalFeeAmount = investmentAmount.mul(fee) / ONE;
         uint totalInvestmentAmount = investmentAmount;
 
+        FPMMDeterministicFactory factory = FPMMDeterministicFactory(factoryAddress);
+
+        bool protocolFeeOn = factory.protocolFeeOn();
+        uint8 protocolFeeDenominator = factory.protocolFeeDenominator();
+
         if (protocolFeeOn && protocolFeeDenominator > 0) {
             protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
             lpFeeAmount = totalFeeAmount.sub(protocolFeeAmount);
             totalInvestmentAmount = totalInvestmentAmount.sub(protocolFeeAmount);
-            require(collateralToken.transfer(factory, protocolFeeAmount), "protocol fee transfer failed");
+            require(collateralToken.transfer(factoryAddress, protocolFeeAmount), "protocol fee transfer failed");
         } else {
             lpFeeAmount = totalFeeAmount;
         }
@@ -343,11 +340,16 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver, Initializable {
         uint totalFeeAmount = returnAmount.mul(fee) / (ONE.sub(fee));
         uint totalReturnAmount = returnAmount;
 
+        FPMMDeterministicFactory factory = FPMMDeterministicFactory(factoryAddress);
+
+        bool protocolFeeOn = factory.protocolFeeOn();
+        uint8 protocolFeeDenominator = factory.protocolFeeDenominator();
+
         if (protocolFeeOn && protocolFeeDenominator > 0) {
             protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
             lpFeeAmount = totalFeeAmount.sub(protocolFeeAmount);
             totalReturnAmount = totalReturnAmount.sub(protocolFeeAmount);
-            require(collateralToken.transfer(factory, protocolFeeAmount), "protocol fee transfer failed");
+            require(collateralToken.transfer(factoryAddress, protocolFeeAmount), "protocol fee transfer failed");
         } else {
             lpFeeAmount = totalReturnAmount;
         }
@@ -406,7 +408,5 @@ contract FixedProductMarketMakerData {
     bytes32[][] internal collectionIds;
     uint[] internal positionIds;
 
-    bool public protocolFeeOn;
-    uint8 public protocolFeeDenominator;
-    address public factory;
+    address public factoryAddress;
 }
