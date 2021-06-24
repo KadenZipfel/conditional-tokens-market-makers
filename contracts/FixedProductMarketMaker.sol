@@ -265,7 +265,6 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         require(collateralToken.transferFrom(msg.sender, address(this), investmentAmount), "cost transfer failed");
 
         uint protocolFeeAmount;
-        uint lpFeeAmount;
 
         uint totalFeeAmount = investmentAmount.mul(fee) / ONE;
         uint totalInvestmentAmount = investmentAmount;
@@ -277,11 +276,8 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         if (protocolFeeOn && protocolFeeDenominator > 0) {
             protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
-            lpFeeAmount = totalFeeAmount.sub(protocolFeeAmount);
             totalInvestmentAmount = totalInvestmentAmount.sub(protocolFeeAmount);
             require(collateralToken.transfer(factoryAddress, protocolFeeAmount), "protocol fee transfer failed");
-        } else {
-            lpFeeAmount = totalFeeAmount;
         }
 
         require(collateralToken.approve(address(conditionalTokens), totalInvestmentAmount), "approval for splits failed");
@@ -299,7 +295,6 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         conditionalTokens.safeTransferFrom(msg.sender, address(this), positionIds[outcomeIndex], outcomeTokensToSell, "");
 
         uint protocolFeeAmount;
-        uint lpFeeAmount;
 
         uint totalFeeAmount = returnAmount.mul(fee) / (ONE.sub(fee));
         uint totalReturnAmount = returnAmount;
@@ -311,11 +306,8 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         if (protocolFeeOn && protocolFeeDenominator > 0) {
             protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
-            lpFeeAmount = totalFeeAmount.sub(protocolFeeAmount);
             totalReturnAmount = totalReturnAmount.sub(protocolFeeAmount);
             require(collateralToken.transfer(factoryAddress, protocolFeeAmount), "protocol fee transfer failed");
-        } else {
-            lpFeeAmount = totalReturnAmount;
         }
 
         mergePositionsThroughAllConditions(totalReturnAmount);
