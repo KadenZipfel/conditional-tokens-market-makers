@@ -264,8 +264,6 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         require(collateralToken.transferFrom(msg.sender, address(this), investmentAmount), "cost transfer failed");
 
-        uint protocolFeeAmount;
-
         uint totalFeeAmount = investmentAmount.mul(fee) / ONE;
         uint totalInvestmentAmount = investmentAmount;
 
@@ -275,7 +273,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         uint8 protocolFeeDenominator = factory.protocolFeeDenominator();
 
         if (protocolFeeOn && protocolFeeDenominator > 0) {
-            protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
+            uint protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
             totalInvestmentAmount = totalInvestmentAmount.sub(protocolFeeAmount);
             require(collateralToken.transfer(factoryAddress, protocolFeeAmount), "protocol fee transfer failed");
         }
@@ -294,8 +292,6 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         conditionalTokens.safeTransferFrom(msg.sender, address(this), positionIds[outcomeIndex], outcomeTokensToSell, "");
 
-        uint protocolFeeAmount;
-
         uint totalFeeAmount = returnAmount.mul(fee) / (ONE.sub(fee));
         uint totalReturnAmount = returnAmount;
 
@@ -305,7 +301,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         uint8 protocolFeeDenominator = factory.protocolFeeDenominator();
 
         if (protocolFeeOn && protocolFeeDenominator > 0) {
-            protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
+            uint protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
             totalReturnAmount = totalReturnAmount.sub(protocolFeeAmount);
             require(collateralToken.transfer(factoryAddress, protocolFeeAmount), "protocol fee transfer failed");
         }
