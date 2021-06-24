@@ -197,7 +197,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
                 if (sendAmounts[i] < min) {
                     transferAmounts[i] = min.sub(sendAmounts[i]);
                 }
-                sendAmounts[i] = sendAmounts[i].sub(min);
+                sendAmounts[i] = 0;
             }
 
             // Transfer necessary outcome tokens from user
