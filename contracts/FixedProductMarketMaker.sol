@@ -191,14 +191,17 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
             }
         }
 
+        bool additionalShares;
+
         // Only do if there is a balance for each outcome token
         if (min > 0) {
             for(uint i = 0; i < poolBalances.length; i++) {
-                if (sendAmounts[i] < min) {
+                if (sendAmounts[i] <= min) {
                     transferAmounts[i] = min.sub(sendAmounts[i]);
                     sendAmounts[i] = 0;
                 } else {
                     sendAmounts[i] = sendAmounts[i].sub(min);
+                    additionalShares = true;
                 }
             }
 
@@ -219,7 +222,9 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
             collateralToken.balanceOf(address(this))
         );
 
-        conditionalTokens.safeBatchTransferFrom(address(this), msg.sender, positionIds, sendAmounts, "");
+        if (additionalShares) {
+            conditionalTokens.safeBatchTransferFrom(address(this), msg.sender, positionIds, sendAmounts, "");
+        }
 
         emit FPMMFundingRemoved(msg.sender, sendAmounts, collateralRemovedFromFeePool, totalSharesToBurn);
     }
