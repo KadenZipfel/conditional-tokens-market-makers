@@ -274,7 +274,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         if (protocolFeeOn && protocolFeeDenominator > 0) {
             uint protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
-            totalInvestmentAmount = totalInvestmentAmount.sub(protocolFeeAmount);
+            totalInvestmentAmount = totalInvestmentAmount.sub(totalFeeAmount);
             require(collateralToken.transfer(factoryAddress, protocolFeeAmount), "protocol fee transfer failed");
         }
 
@@ -302,7 +302,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         if (protocolFeeOn && protocolFeeDenominator > 0) {
             uint protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
-            totalReturnAmount = totalReturnAmount.sub(protocolFeeAmount);
+            totalReturnAmount = totalReturnAmount.sub(totalFeeAmount);
             require(collateralToken.transfer(factoryAddress, protocolFeeAmount), "protocol fee transfer failed");
         }
 
