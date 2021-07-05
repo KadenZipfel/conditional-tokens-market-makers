@@ -293,7 +293,6 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         conditionalTokens.safeTransferFrom(msg.sender, address(this), positionIds[outcomeIndex], outcomeTokensToSell, "");
 
         uint totalFeeAmount = returnAmount.mul(fee) / (ONE.sub(fee));
-        uint totalReturnAmount = returnAmount;
 
         FPMMDeterministicFactory factory = FPMMDeterministicFactory(factoryAddress);
 
@@ -302,15 +301,14 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         if (protocolFeeOn && protocolFeeDenominator > 0) {
             uint protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
-            totalReturnAmount = totalReturnAmount.sub(totalFeeAmount);
             require(collateralToken.transfer(factoryAddress, protocolFeeAmount), "protocol fee transfer failed");
         }
 
-        mergePositionsThroughAllConditions(totalReturnAmount);
+        mergePositionsThroughAllConditions(returnAmount);
 
-        require(collateralToken.transfer(msg.sender, totalReturnAmount), "return transfer failed");
+        require(collateralToken.transfer(msg.sender, returnAmount), "return transfer failed");
 
-        emit FPMMSell(msg.sender, totalReturnAmount, totalFeeAmount, outcomeIndex, outcomeTokensToSell);
+        emit FPMMSell(msg.sender, returnAmount, totalFeeAmount, outcomeIndex, outcomeTokensToSell);
     }
 }
 
