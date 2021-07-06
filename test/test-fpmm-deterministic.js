@@ -82,11 +82,13 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
                             'address',
                             'bytes32[]',
                             'uint',
+                            'address'
                         ], [
                             conditionalTokens.address,
                             collateralToken.address,
                             [conditionId],
                             feeFactor.toString(),
+                            fpmmDeterministicFactory.address
                         ])]).replace(/^0x/, '')
                     }`),
                 },
