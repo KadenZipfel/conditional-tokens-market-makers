@@ -265,7 +265,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         require(collateralToken.transferFrom(msg.sender, address(this), investmentAmount), "cost transfer failed");
 
         uint totalFeeAmount = investmentAmount.mul(fee) / ONE;
-        uint totalInvestmentAmount = investmentAmount;
+        uint totalCollateralToSplit = investmentAmount;
 
         FPMMDeterministicFactory factory = FPMMDeterministicFactory(factoryAddress);
 
@@ -274,12 +274,12 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         if (protocolFeeOn && protocolFeeDenominator > 0) {
             uint protocolFeeAmount = totalFeeAmount / protocolFeeDenominator;
-            totalInvestmentAmount = totalInvestmentAmount.sub(totalFeeAmount);
+            totalCollateralToSplit = totalCollateralToSplit.sub(protocolFeeAmount);
             require(collateralToken.transfer(factoryAddress, protocolFeeAmount), "protocol fee transfer failed");
         }
 
-        require(collateralToken.approve(address(conditionalTokens), totalInvestmentAmount), "approval for splits failed");
-        splitPositionThroughAllConditions(totalInvestmentAmount);
+        require(collateralToken.approve(address(conditionalTokens), totalCollateralToSplit), "approval for splits failed");
+        splitPositionThroughAllConditions(totalCollateralToSplit);
 
         conditionalTokens.safeTransferFrom(address(this), msg.sender, positionIds[outcomeIndex], outcomeTokensToBuy, "");
 
