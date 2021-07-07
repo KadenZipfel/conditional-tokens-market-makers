@@ -164,7 +164,7 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
         await collateralToken.approve(fixedProductMarketMaker.address, investmentAmount, { from: trader });
 
         const outcomeTokensToBuy = await fixedProductMarketMaker.calcBuyAmount(investmentAmount, buyOutcomeIndex);
-        const feeAmount = investmentAmount.mul(feeFactor).div(toBN(1e18));
+        const feeAmount = investmentAmount.mul(feeFactor).div(investmentAmount);
 
         const poolProductBefore = (await conditionalTokens.balanceOfBatch(
             Array.from(positionIds, () => fixedProductMarketMaker.address),
@@ -187,20 +187,20 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
 
         poolProductAfter.sub(poolProductBefore)
             .should.be.a.bignumber.gte("0")
-            .and.be.a.bignumber.lte(poolProductBefore.div(toBN(1e18)));
+            .and.be.a.bignumber.lte(poolProductBefore.mul(feeAmount.mul(toBN(positionIds.length))).div(investmentAmount));
         (await collateralToken.balanceOf(trader)).should.be.a.bignumber.equal("0");
         (await fixedProductMarketMaker.balanceOf(trader)).should.be.a.bignumber.equal("0");
-        (await collateralToken.balanceOf(fixedProductMarketMaker.address)).should.be.a.bignumber.equal(feePoolManipulationAmount.add(feeAmount));
+        (await collateralToken.balanceOf(fixedProductMarketMaker.address)).should.be.a.bignumber.equal(feePoolManipulationAmount);
 
         marketMakerPool = []
         for(let i = 0; i < positionIds.length; i++) {
             let newMarketMakerBalance;
             if(i === buyOutcomeIndex) {
-                newMarketMakerBalance = expectedFundedAmounts[i].add(investmentAmount).sub(feeAmount).sub(outcomeTokensToBuy);
+                newMarketMakerBalance = expectedFundedAmounts[i].add(investmentAmount).sub(outcomeTokensToBuy);
                 (await conditionalTokens.balanceOf(trader, positionIds[i]))
                     .should.be.a.bignumber.equal(outcomeTokensToBuy);
             } else {
-                newMarketMakerBalance = expectedFundedAmounts[i].add(investmentAmount).sub(feeAmount);
+                newMarketMakerBalance = expectedFundedAmounts[i].add(investmentAmount);
                 (await conditionalTokens.balanceOf(trader, positionIds[i]))
                     .should.be.a.bignumber.equal("0");
             }
