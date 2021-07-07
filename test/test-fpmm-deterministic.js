@@ -246,8 +246,6 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
             .should.be.a.bignumber.gte(outcomeTokensToSell);
         const feeAmount = returnAmount.mul(feeFactor).div(toBN(1e18).sub(feeFactor));
 
-        const fpmmCollateralBalanceBefore = await collateralToken.balanceOf(fixedProductMarketMaker.address);
-
         const poolProductBefore = (await conditionalTokens.balanceOfBatch(
             Array.from(positionIds, () => fixedProductMarketMaker.address),
             positionIds,
@@ -269,23 +267,19 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
 
         poolProductAfter.sub(poolProductBefore)
             .should.be.a.bignumber.gte("0")
-            .and.be.a.bignumber.lte(poolProductBefore.div(toBN(1e18)));
+            .and.be.a.bignumber.lte(poolProductBefore.mul(feeAmount.mul(toBN(positionIds.length))).div(toBN(1e18)));
         (await collateralToken.balanceOf(trader)).should.be.a.bignumber.equal(returnAmount);
         (await fixedProductMarketMaker.balanceOf(trader)).should.be.a.bignumber.equal("0");
-
-        const fpmmCollateralBalanceAfter = await collateralToken.balanceOf(fixedProductMarketMaker.address);
-
-        fpmmCollateralBalanceAfter.sub(fpmmCollateralBalanceBefore).should.be.a.bignumber.equal(feeAmount);
 
         for(let i = 0; i < positionIds.length; i++) {
             let newMarketMakerBalance;
             if(i === sellOutcomeIndex) {
-                newMarketMakerBalance = marketMakerPool[i].sub(returnAmount).sub(feeAmount).add(outcomeTokensToSell)
+                newMarketMakerBalance = marketMakerPool[i].sub(returnAmount).add(outcomeTokensToSell)
             } else {
-                newMarketMakerBalance = marketMakerPool[i].sub(returnAmount).sub(feeAmount)
+                newMarketMakerBalance = marketMakerPool[i].sub(returnAmount)
             }
             (await conditionalTokens.balanceOf(fixedProductMarketMaker.address, positionIds[i]))
-                .should.be.a.bignumber.equal(newMarketMakerBalance);
+                .should.be.a.bignumber.gte(newMarketMakerBalance);
             marketMakerPool[i] = newMarketMakerBalance
         }
     })
