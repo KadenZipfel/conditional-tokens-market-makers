@@ -236,33 +236,6 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
         poolProductAfter.should.be.a.bignumber.gte(poolProductBefore);
     });
 
-    let postManipulationCreatorPoolShares;
-    step('cannot raise fee pool ratio by removing funding down to 1 wei', async function() {
-        const manipulationAmount = initialFunds.subn(1);
-        const collateralBalanceBefore = await collateralToken.balanceOf(fixedProductMarketMaker.address);
-        const collectedFeesBefore = await fixedProductMarketMaker.collectedFees();
-
-        await fixedProductMarketMaker.removeFunding(manipulationAmount, { from: creator });
-        await collateralToken.deposit({ from: creator, value: manipulationAmount });
-        await collateralToken.approve(
-            fixedProductMarketMaker.address,
-            manipulationAmount,
-            { from: creator }
-        );
-        await fixedProductMarketMaker.addFunding(manipulationAmount, [], { from: creator });
-
-        (await collateralToken.balanceOf(fixedProductMarketMaker.address))
-            .should.be.a.bignumber.lte(collateralBalanceBefore);
-        (await fixedProductMarketMaker.collectedFees())
-            .should.be.a.bignumber.lte(collectedFeesBefore);
-
-        marketMakerPool = await conditionalTokens.balanceOfBatch(
-            new Array(positionIds.length).fill(fixedProductMarketMaker.address),
-            positionIds,
-        )
-        postManipulationCreatorPoolShares = await fixedProductMarketMaker.balanceOf(creator);
-    });
-
     step('can sell tokens to it', async function() {
         const returnAmount = toBN(1e17)
         const sellOutcomeIndex = 1;
