@@ -211,8 +211,11 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
     });
 
     step('cannot leech wei by adding and removing funding', async function() {
-        const collateralBalanceBefore = await collateralToken.balanceOf(fixedProductMarketMaker.address);
-        const collectedFeesBefore = await fixedProductMarketMaker.collectedFees();
+        const poolBalancesBefore = await conditionalTokens.balanceOfBatch(
+            Array.from(positionIds, () => fixedProductMarketMaker.address),
+            positionIds,
+        );
+        const poolProductBefore = poolBalancesBefore.reduce((a, b) => a.mul(b), toBN(1));
         
         await collateralToken.deposit({ value: testAdditionalFunding, from: testInvestor });
         await collateralToken.approve(fixedProductMarketMaker.address, testAdditionalFunding, { from: testInvestor });
@@ -220,11 +223,17 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
         const testSharesMinted = await fixedProductMarketMaker.balanceOf(testInvestor);
         await fixedProductMarketMaker.removeFunding(testSharesMinted, { from: testInvestor });
 
-        const collateralBalanceAfter = await collateralToken.balanceOf(fixedProductMarketMaker.address);
-        const collectedFeesAfter = await fixedProductMarketMaker.collectedFees();
+        const poolBalancesAfter = await conditionalTokens.balanceOfBatch(
+            Array.from(positionIds, () => fixedProductMarketMaker.address),
+            positionIds,
+        )
+        const poolProductAfter = poolBalancesAfter.reduce((a, b) => a.mul(b), toBN(1));
 
-        collateralBalanceBefore.should.be.a.bignumber.equal(collateralBalanceAfter);
-        collectedFeesBefore.should.be.a.bignumber.equal(collectedFeesAfter);
+        poolBalancesBefore.forEach((beforeBalance, i) => {
+            poolBalancesAfter[i].should.be.a.bignumber.gte(beforeBalance);
+        })
+
+        poolProductAfter.should.be.a.bignumber.gte(poolProductBefore);
     });
 
     let postManipulationCreatorPoolShares;
