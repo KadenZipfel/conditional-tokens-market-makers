@@ -170,6 +170,7 @@ contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trade
     });
 
     let marketMakerPool;
+    let buyProtocolFeeAmount;
     step('can buy tokens from it', async function() {
         const investmentAmount = toBN(1e18)
         const buyOutcomeIndex = 1;
@@ -180,7 +181,7 @@ contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trade
         const feeAmount = investmentAmount.mul(feeFactor).div(investmentAmount);
 
         const protocolFeeDenominator = await fpmmDeterministicFactory.protocolFeeDenominator();
-        const protocolFeeAmount = feeAmount.div(protocolFeeDenominator);
+        buyProtocolFeeAmount = feeAmount.div(protocolFeeDenominator);
 
         const poolProductBefore = (await conditionalTokens.balanceOfBatch(
             Array.from(positionIds, () => fixedProductMarketMaker.address),
@@ -221,7 +222,7 @@ contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trade
                     .should.be.a.bignumber.equal("0");
             }
             (await conditionalTokens.balanceOf(fixedProductMarketMaker.address, positionIds[i]))
-                .should.be.a.bignumber.equal(newMarketMakerBalance.sub(protocolFeeAmount));
+                .should.be.a.bignumber.equal(newMarketMakerBalance.sub(buyProtocolFeeAmount));
             marketMakerPool[i] = newMarketMakerBalance
         }
     });
@@ -262,6 +263,9 @@ contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trade
             .should.be.a.bignumber.gte(outcomeTokensToSell);
         const feeAmount = returnAmount.mul(feeFactor).div(toBN(1e18).sub(feeFactor));
 
+        const protocolFeeDenominator = await fpmmDeterministicFactory.protocolFeeDenominator();
+        const protocolFeeAmount = feeAmount.div(protocolFeeDenominator).add(buyProtocolFeeAmount);
+
         const poolProductBefore = (await conditionalTokens.balanceOfBatch(
             Array.from(positionIds, () => fixedProductMarketMaker.address),
             positionIds,
@@ -295,7 +299,7 @@ contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trade
                 newMarketMakerBalance = marketMakerPool[i].sub(returnAmount)
             }
             (await conditionalTokens.balanceOf(fixedProductMarketMaker.address, positionIds[i]))
-                .should.be.a.bignumber.gte(newMarketMakerBalance);
+                .should.be.a.bignumber.gte(newMarketMakerBalance.sub(protocolFeeAmount));
             marketMakerPool[i] = newMarketMakerBalance
         }
     })
