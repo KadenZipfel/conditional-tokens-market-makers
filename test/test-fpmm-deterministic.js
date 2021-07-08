@@ -179,6 +179,9 @@ contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trade
         const outcomeTokensToBuy = await fixedProductMarketMaker.calcBuyAmount(investmentAmount, buyOutcomeIndex);
         const feeAmount = investmentAmount.mul(feeFactor).div(investmentAmount);
 
+        const protocolFeeDenominator = await fpmmDeterministicFactory.protocolFeeDenominator();
+        const protocolFeeAmount = feeAmount.div(protocolFeeDenominator);
+
         const poolProductBefore = (await conditionalTokens.balanceOfBatch(
             Array.from(positionIds, () => fixedProductMarketMaker.address),
             positionIds,
@@ -218,7 +221,7 @@ contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trade
                     .should.be.a.bignumber.equal("0");
             }
             (await conditionalTokens.balanceOf(fixedProductMarketMaker.address, positionIds[i]))
-                .should.be.a.bignumber.equal(newMarketMakerBalance);
+                .should.be.a.bignumber.equal(newMarketMakerBalance.sub(protocolFeeAmount));
             marketMakerPool[i] = newMarketMakerBalance
         }
     });
