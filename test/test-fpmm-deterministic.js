@@ -253,6 +253,7 @@ contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trade
         poolProductAfter.should.be.a.bignumber.gte(poolProductBefore);
     });
 
+    let totalProtocolFeeAmount;
     step('can sell tokens to it', async function() {
         const returnAmount = toBN(1e17)
         const sellOutcomeIndex = 1;
@@ -264,7 +265,7 @@ contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trade
         const feeAmount = returnAmount.mul(feeFactor).div(toBN(1e18).sub(feeFactor));
 
         const protocolFeeDenominator = await fpmmDeterministicFactory.protocolFeeDenominator();
-        const protocolFeeAmount = feeAmount.div(protocolFeeDenominator).add(buyProtocolFeeAmount);
+        totalProtocolFeeAmount = feeAmount.div(protocolFeeDenominator).add(buyProtocolFeeAmount);
 
         const poolProductBefore = (await conditionalTokens.balanceOfBatch(
             Array.from(positionIds, () => fixedProductMarketMaker.address),
@@ -299,7 +300,7 @@ contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trade
                 newMarketMakerBalance = marketMakerPool[i].sub(returnAmount)
             }
             (await conditionalTokens.balanceOf(fixedProductMarketMaker.address, positionIds[i]))
-                .should.be.a.bignumber.gte(newMarketMakerBalance.sub(protocolFeeAmount));
+                .should.be.a.bignumber.gte(newMarketMakerBalance.sub(totalProtocolFeeAmount));
             marketMakerPool[i] = newMarketMakerBalance
         }
     })
@@ -373,4 +374,12 @@ contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trade
             marketMakerPool[i] = newMarketMakerBalance;
         }
     })
+
+    step('fee setter can withdraw accrued protocol fees', async function() {
+        const feeSetterBalanceBefore = await collateralToken.balanceOf(feeSetter);
+        await fpmmDeterministicFactory.withdrawProtocolFees([collateralToken.address], feeSetter, { from: feeSetter });
+        const feeSetterBalanceAfter = await collateralToken.balanceOf(feeSetter);
+
+        feeSetterBalanceAfter.sub(feeSetterBalanceBefore).should.be.bignumber.equal(totalProtocolFeeAmount);
+    });
 })
