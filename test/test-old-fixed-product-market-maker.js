@@ -5,9 +5,9 @@ const { randomHex, toBN } = web3.utils
 const ConditionalTokens = artifacts.require('ConditionalTokens')
 const WETH9 = artifacts.require('WETH9')
 const FixedProductMarketMakerFactory = artifacts.require('FixedProductMarketMakerFactory')
-const FixedProductMarketMaker = artifacts.require('FixedProductMarketMaker')
+const OldFixedProductMarketMaker = artifacts.require('OldFixedProductMarketMaker')
 
-contract('FixedProductMarketMaker', function([, creator, oracle, investor1, trader, investor2]) {
+contract('OldFixedProductMarketMaker', function([, creator, oracle, investor1, trader, investor2]) {
     const questionId = randomHex(32)
     const numOutcomes = 64
     const conditionId = getConditionId(oracle, questionId, numOutcomes)
@@ -49,7 +49,7 @@ contract('FixedProductMarketMaker', function([, creator, oracle, investor1, trad
             fee: feeFactor,
         });
 
-        fixedProductMarketMaker = await FixedProductMarketMaker.at(fixedProductMarketMakerAddress)
+        fixedProductMarketMaker = await OldFixedProductMarketMaker.at(fixedProductMarketMakerAddress)
     })
 
     const addedFunds1 = toBN(10e18)
