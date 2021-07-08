@@ -1,3 +1,4 @@
+const { step } = require('mocha-steps')
 const { expectEvent } = require('openzeppelin-test-helpers')
 const { getConditionId, getCollectionId, getPositionId } = require('@gnosis.pm/conditional-tokens-contracts/utils/id-helpers')(web3.utils)
 const { randomHex, toBN } = web3.utils
@@ -7,7 +8,7 @@ const WETH9 = artifacts.require('WETH9')
 const FPMMDeterministicFactory = artifacts.require('FPMMDeterministicFactory')
 const FixedProductMarketMaker = artifacts.require('FixedProductMarketMaker')
 
-contract('FPMMDeterministicFactory', function([, creator, oracle, trader, investor2, testInvestor]) {
+contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trader, investor2, testInvestor]) {
     const questionId = randomHex(32)
     const numOutcomes = 10
     const conditionId = getConditionId(oracle, questionId, numOutcomes)
@@ -23,7 +24,7 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
     before(async function() {
         conditionalTokens = await ConditionalTokens.deployed();
         collateralToken = await WETH9.deployed();
-        fpmmDeterministicFactory = await FPMMDeterministicFactory.deployed()
+        fpmmDeterministicFactory = await FPMMDeterministicFactory.deployed({from: feeSetter})
         positionIds = collectionIds.map(collectionId => getPositionId(collateralToken.address, collectionId))
     })
 
@@ -33,6 +34,16 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
     const initialFunds = toBN(10e18)
     const initialDistribution = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
     const expectedFundedAmounts = initialDistribution.map(n => toBN(1e18 * n))
+
+    step('can set protocol fee', async function() {
+        await fpmmDeterministicFactory.setProtocolFeeOn(true, { from: feeSetter });
+        await fpmmDeterministicFactory.setProtocolFeeDenominator(toBN(10), { from: feeSetter });
+        const protocolFeeOn = await fpmmDeterministicFactory.protocolFeeOn();
+        const protocolFeeDenominator = await fpmmDeterministicFactory.protocolFeeDenominator();
+
+        protocolFeeOn.should.be.true;
+        protocolFeeDenominator.should.be.bignumber.equal(toBN(10));
+    });
 
     step('can be created and funded by factory', async function() {
         await collateralToken.deposit({ value: initialFunds, from: creator });
