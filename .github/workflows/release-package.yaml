@@ -1,4 +1,4 @@
-name: Conditional tokens market makers
+name: Node.js package
 
 on:
   release:
