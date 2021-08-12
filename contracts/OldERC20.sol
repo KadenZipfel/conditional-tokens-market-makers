@@ -155,6 +155,8 @@ contract ERC20 is IERC20 {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
+        _beforeTokenTransfer(sender, recipient, amount);
+
         _balances[sender] = _balances[sender].sub(amount);
         _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
@@ -171,6 +173,8 @@ contract ERC20 is IERC20 {
      */
     function _mint(address account, uint256 amount) internal {
         require(account != address(0), "ERC20: mint to the zero address");
+
+        _beforeTokenTransfer(address(0), account, amount);
 
         _totalSupply = _totalSupply.add(amount);
         _balances[account] = _balances[account].add(amount);
@@ -190,6 +194,8 @@ contract ERC20 is IERC20 {
      */
     function _burn(address account, uint256 amount) internal {
         require(account != address(0), "ERC20: burn from the zero address");
+
+        _beforeTokenTransfer(account, address(0), amount);
 
         _balances[account] = _balances[account].sub(amount);
         _totalSupply = _totalSupply.sub(amount);
@@ -227,4 +233,20 @@ contract ERC20 is IERC20 {
         _burn(account, amount);
         _approve(account, msg.sender, _allowances[account][msg.sender].sub(amount));
     }
+
+    /**
+     * @dev Hook that is called before any transfer of tokens. This includes
+     * minting and burning.
+     *
+     * Calling conditions:
+     *
+     * - when `from` and `to` are both non-zero, `amount` of `from`'s tokens
+     * will be to transferred to `to`.
+     * - when `from` is zero, `amount` tokens will be minted for `to`.
+     * - when `to` is zero, `amount` of `from`'s tokens will be burned.
+     * - `from` and `to` are never both zero.
+     *
+     * To learn more about hooks, head to xref:ROOT:using-hooks.adoc[Using Hooks].
+     */
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal { }
 }
