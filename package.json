@@ -54,5 +54,8 @@
   "bugs": {
     "url": "https://github.com/gnosis/conditional-tokens-market-makers/issues"
   },
-  "homepage": "https://github.com/gnosis/conditional-tokens-market-makers#readme"
+  "homepage": "https://github.com/gnosis/conditional-tokens-market-makers#readme",
+  "publishConfig": {
+    "@kadenzipfel:registry": "https://npm.pkg.github.com"
+  }
 }

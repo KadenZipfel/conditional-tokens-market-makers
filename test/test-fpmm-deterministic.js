@@ -1,3 +1,4 @@
+const { step } = require('mocha-steps')
 const { expectEvent } = require('openzeppelin-test-helpers')
 const { getConditionId, getCollectionId, getPositionId } = require('@gnosis.pm/conditional-tokens-contracts/utils/id-helpers')(web3.utils)
 const { randomHex, toBN } = web3.utils
@@ -7,7 +8,7 @@ const WETH9 = artifacts.require('WETH9')
 const FPMMDeterministicFactory = artifacts.require('FPMMDeterministicFactory')
 const FixedProductMarketMaker = artifacts.require('FixedProductMarketMaker')
 
-contract('FPMMDeterministicFactory', function([, creator, oracle, trader, investor2, testInvestor]) {
+contract('FPMMDeterministicFactory', function([feeSetter, creator, oracle, trader, investor2, testInvestor]) {
     const questionId = randomHex(32)
     const numOutcomes = 10
     const conditionId = getConditionId(oracle, questionId, numOutcomes)
@@ -23,7 +24,7 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
     before(async function() {
         conditionalTokens = await ConditionalTokens.deployed();
         collateralToken = await WETH9.deployed();
-        fpmmDeterministicFactory = await FPMMDeterministicFactory.deployed()
+        fpmmDeterministicFactory = await FPMMDeterministicFactory.deployed({from: feeSetter})
         positionIds = collectionIds.map(collectionId => getPositionId(collateralToken.address, collectionId))
     })
 
@@ -33,6 +34,16 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
     const initialFunds = toBN(10e18)
     const initialDistribution = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
     const expectedFundedAmounts = initialDistribution.map(n => toBN(1e18 * n))
+
+    step('can set protocol fee', async function() {
+        await fpmmDeterministicFactory.setProtocolFeeOn(true, { from: feeSetter });
+        await fpmmDeterministicFactory.setProtocolFeeDenominator(toBN(10), { from: feeSetter });
+        const protocolFeeOn = await fpmmDeterministicFactory.protocolFeeOn();
+        const protocolFeeDenominator = await fpmmDeterministicFactory.protocolFeeDenominator();
+
+        protocolFeeOn.should.be.true;
+        protocolFeeDenominator.should.be.bignumber.equal(toBN(10));
+    });
 
     step('can be created and funded by factory', async function() {
         await collateralToken.deposit({ value: initialFunds, from: creator });
@@ -82,11 +93,13 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
                             'address',
                             'bytes32[]',
                             'uint',
+                            'address'
                         ], [
                             conditionalTokens.address,
                             collateralToken.address,
                             [conditionId],
                             feeFactor.toString(),
+                            fpmmDeterministicFactory.address
                         ])]).replace(/^0x/, '')
                     }`),
                 },
@@ -157,6 +170,7 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
     });
 
     let marketMakerPool;
+    let buyProtocolFeeAmount;
     step('can buy tokens from it', async function() {
         const investmentAmount = toBN(1e18)
         const buyOutcomeIndex = 1;
@@ -165,6 +179,9 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
 
         const outcomeTokensToBuy = await fixedProductMarketMaker.calcBuyAmount(investmentAmount, buyOutcomeIndex);
         const feeAmount = investmentAmount.mul(feeFactor).div(investmentAmount);
+
+        const protocolFeeDenominator = await fpmmDeterministicFactory.protocolFeeDenominator();
+        buyProtocolFeeAmount = feeAmount.div(protocolFeeDenominator);
 
         const poolProductBefore = (await conditionalTokens.balanceOfBatch(
             Array.from(positionIds, () => fixedProductMarketMaker.address),
@@ -205,7 +222,7 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
                     .should.be.a.bignumber.equal("0");
             }
             (await conditionalTokens.balanceOf(fixedProductMarketMaker.address, positionIds[i]))
-                .should.be.a.bignumber.equal(newMarketMakerBalance);
+                .should.be.a.bignumber.equal(newMarketMakerBalance.sub(buyProtocolFeeAmount));
             marketMakerPool[i] = newMarketMakerBalance
         }
     });
@@ -236,6 +253,7 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
         poolProductAfter.should.be.a.bignumber.gte(poolProductBefore);
     });
 
+    let totalProtocolFeeAmount;
     step('can sell tokens to it', async function() {
         const returnAmount = toBN(1e17)
         const sellOutcomeIndex = 1;
@@ -245,6 +263,9 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
         (await conditionalTokens.balanceOf(trader, positionIds[sellOutcomeIndex]))
             .should.be.a.bignumber.gte(outcomeTokensToSell);
         const feeAmount = returnAmount.mul(feeFactor).div(toBN(1e18).sub(feeFactor));
+
+        const protocolFeeDenominator = await fpmmDeterministicFactory.protocolFeeDenominator();
+        totalProtocolFeeAmount = feeAmount.div(protocolFeeDenominator).add(buyProtocolFeeAmount);
 
         const poolProductBefore = (await conditionalTokens.balanceOfBatch(
             Array.from(positionIds, () => fixedProductMarketMaker.address),
@@ -279,7 +300,7 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
                 newMarketMakerBalance = marketMakerPool[i].sub(returnAmount)
             }
             (await conditionalTokens.balanceOf(fixedProductMarketMaker.address, positionIds[i]))
-                .should.be.a.bignumber.gte(newMarketMakerBalance);
+                .should.be.a.bignumber.gte(newMarketMakerBalance.sub(totalProtocolFeeAmount));
             marketMakerPool[i] = newMarketMakerBalance
         }
     })
@@ -353,4 +374,12 @@ contract('FPMMDeterministicFactory', function([, creator, oracle, trader, invest
             marketMakerPool[i] = newMarketMakerBalance;
         }
     })
+
+    step('fee setter can withdraw accrued protocol fees', async function() {
+        const feeSetterBalanceBefore = await collateralToken.balanceOf(feeSetter);
+        await fpmmDeterministicFactory.withdrawProtocolFees([collateralToken.address], feeSetter, { from: feeSetter });
+        const feeSetterBalanceAfter = await collateralToken.balanceOf(feeSetter);
+
+        feeSetterBalanceAfter.sub(feeSetterBalanceBefore).should.be.bignumber.equal(totalProtocolFeeAmount);
+    });
 })
