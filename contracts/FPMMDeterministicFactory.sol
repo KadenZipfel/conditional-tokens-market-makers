@@ -1,18 +1,14 @@
 pragma solidity ^0.5.1;
 
 import { IERC20 } from "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
-import { SafeMath } from "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import { ConditionalTokens } from "@gnosis.pm/conditional-tokens-contracts/contracts/ConditionalTokens.sol";
 import { CTHelpers } from "@gnosis.pm/conditional-tokens-contracts/contracts/CTHelpers.sol";
 import { Create2CloneFactory } from "./Create2CloneFactory.sol";
 import { FixedProductMarketMaker, FixedProductMarketMakerData } from "./FixedProductMarketMaker.sol";
 import { ERC1155TokenReceiver } from "@gnosis.pm/conditional-tokens-contracts/contracts/ERC1155/ERC1155TokenReceiver.sol";
-import { ERC20 } from "./ERC20.sol";
 
 
 contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMakerData, ERC1155TokenReceiver {
-    using SafeMath for uint;
-
     event FixedProductMarketMakerCreation(
         address indexed creator,
         FixedProductMarketMaker fixedProductMarketMaker,
@@ -24,13 +20,9 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
 
     FixedProductMarketMaker public implementationMaster;
     address internal currentFunder;
-    uint8 public protocolFeeDenominator;
-    bool public protocolFeeOn;
-    address public protocolFeeSetter;
 
     constructor() public {
         implementationMaster = new FixedProductMarketMaker();
-        protocolFeeSetter = msg.sender;
     }
 
     function cloneConstructor(bytes calldata consData) external {
@@ -38,9 +30,8 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
             ConditionalTokens _conditionalTokens,
             IERC20 _collateralToken,
             bytes32[] memory _conditionIds,
-            uint _fee,
-            address _factoryAddress
-        ) = abi.decode(consData, (ConditionalTokens, IERC20, bytes32[], uint, address));
+            uint _fee
+        ) = abi.decode(consData, (ConditionalTokens, IERC20, bytes32[], uint));
 
         _supportedInterfaces[_INTERFACE_ID_ERC165] = true;
         _supportedInterfaces[
@@ -52,7 +43,6 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         collateralToken = _collateralToken;
         conditionIds = _conditionIds;
         fee = _fee;
-        factoryAddress = _factoryAddress;
 
         uint atomicOutcomeSlotCount = 1;
         outcomeSlotCounts = new uint[](conditionIds.length);
@@ -119,6 +109,7 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         return this.onERC1155BatchReceived.selector;
     }
 
+
     function create2FixedProductMarketMaker(
         uint saltNonce,
         ConditionalTokens conditionalTokens,
@@ -136,8 +127,7 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
                 conditionalTokens,
                 collateralToken,
                 conditionIds,
-                fee,
-                address(this)
+                fee
             ))
         );
         emit FixedProductMarketMakerCreation(
@@ -159,34 +149,5 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         }
 
         return fixedProductMarketMaker;
-    }
-
-    function withdrawProtocolFees(address[] calldata _tokens, address _recipient) external onlyProtocolFeeSetter {
-        for (uint i = 0; i < _tokens.length; i++) {
-            ERC20 _token = ERC20(_tokens[i]);
-            uint _tokenBalance = _token.balanceOf(address(this));
-            if (_tokenBalance > 0) {
-                _token.transfer(_recipient, _tokenBalance);
-            }
-        }
-    }
-
-    function setProtocolFeeOn(bool _protocolFeeOn) external onlyProtocolFeeSetter {
-        protocolFeeOn = _protocolFeeOn;
-    }
-
-    function setProtocolFeeDenominator(uint8 _protocolFeeDenominator) external onlyProtocolFeeSetter {
-        require(_protocolFeeDenominator >= 4, 'max 25% protocol fee');
-        protocolFeeDenominator = _protocolFeeDenominator;
-    }
-
-    function setProtocolFeeSetter(address _protocolFeeSetter) external onlyProtocolFeeSetter {
-        require(_protocolFeeSetter != address(0), 'cannot set protocolFeeSetter to zero address');
-        protocolFeeSetter = _protocolFeeSetter;
-    }
-
-    modifier onlyProtocolFeeSetter {
-        require(msg.sender == protocolFeeSetter, 'onlyProtocolFeeSetter');
-        _;
     }
 }
