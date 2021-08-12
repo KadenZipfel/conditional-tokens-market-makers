@@ -29,6 +29,15 @@ const config = {
       },
       network_id: "4",
     },
+    sokol: {
+      provider: function () {
+        return new HDWalletProvider(
+          process.env.mnemonic,
+          `https://sokol.poa.network`
+        );
+      },
+      network_id: "77",
+    },
     goerli: {
       host: "localhost",
       port: 8545,
