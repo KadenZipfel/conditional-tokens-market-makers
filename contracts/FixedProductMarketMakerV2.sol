@@ -6,7 +6,7 @@ import { ConditionalTokens } from "@gnosis.pm/conditional-tokens-contracts/contr
 import { CTHelpers } from "@gnosis.pm/conditional-tokens-contracts/contracts/CTHelpers.sol";
 import { ERC1155TokenReceiver } from "@gnosis.pm/conditional-tokens-contracts/contracts/ERC1155/ERC1155TokenReceiver.sol";
 import { ERC20 } from "./ERC20.sol";
-import { FPMMDeterministicFactory } from "./FPMMDeterministicFactory.sol";
+import { FPMMDeterministicFactoryV2 } from "./FPMMDeterministicFactoryV2.sol";
 
 
 library CeilDiv {
@@ -18,7 +18,7 @@ library CeilDiv {
 }
 
 
-contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
+contract FixedProductMarketMakerV2 is ERC20, ERC1155TokenReceiver {
     event FPMMFundingAdded(
         address indexed funder,
         uint[] amountsAdded,
@@ -267,7 +267,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
         uint totalFeeAmount = investmentAmount.mul(fee) / ONE;
         uint totalCollateralToSplit = investmentAmount;
 
-        FPMMDeterministicFactory factory = FPMMDeterministicFactory(factoryAddress);
+        FPMMDeterministicFactoryV2 factory = FPMMDeterministicFactoryV2(factoryAddress);
 
         bool protocolFeeOn = factory.protocolFeeOn();
         uint8 protocolFeeDenominator = factory.protocolFeeDenominator();
@@ -294,7 +294,7 @@ contract FixedProductMarketMaker is ERC20, ERC1155TokenReceiver {
 
         uint totalFeeAmount = returnAmount.mul(fee) / (ONE.sub(fee));
 
-        FPMMDeterministicFactory factory = FPMMDeterministicFactory(factoryAddress);
+        FPMMDeterministicFactoryV2 factory = FPMMDeterministicFactoryV2(factoryAddress);
 
         bool protocolFeeOn = factory.protocolFeeOn();
         uint8 protocolFeeDenominator = factory.protocolFeeDenominator();

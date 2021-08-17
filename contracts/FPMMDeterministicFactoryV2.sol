@@ -5,31 +5,31 @@ import { SafeMath } from "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import { ConditionalTokens } from "@gnosis.pm/conditional-tokens-contracts/contracts/ConditionalTokens.sol";
 import { CTHelpers } from "@gnosis.pm/conditional-tokens-contracts/contracts/CTHelpers.sol";
 import { Create2CloneFactory } from "./Create2CloneFactory.sol";
-import { FixedProductMarketMaker, FixedProductMarketMakerData } from "./FixedProductMarketMaker.sol";
+import { FixedProductMarketMakerV2, FixedProductMarketMakerData } from "./FixedProductMarketMakerV2.sol";
 import { ERC1155TokenReceiver } from "@gnosis.pm/conditional-tokens-contracts/contracts/ERC1155/ERC1155TokenReceiver.sol";
 import { ERC20 } from "./ERC20.sol";
 
 
-contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMakerData, ERC1155TokenReceiver {
+contract FPMMDeterministicFactoryV2 is Create2CloneFactory, FixedProductMarketMakerData, ERC1155TokenReceiver {
     using SafeMath for uint;
 
     event FixedProductMarketMakerCreation(
         address indexed creator,
-        FixedProductMarketMaker fixedProductMarketMaker,
+        FixedProductMarketMakerV2 fixedProductMarketMaker,
         ConditionalTokens conditionalTokens,
         IERC20 collateralToken,
         bytes32[] conditionIds,
         uint fee
     );
 
-    FixedProductMarketMaker public implementationMaster;
+    FixedProductMarketMakerV2 public implementationMaster;
     address internal currentFunder;
     uint8 public protocolFeeDenominator;
     bool public protocolFeeOn;
     address public protocolFeeSetter;
 
     constructor() public {
-        implementationMaster = new FixedProductMarketMaker();
+        implementationMaster = new FixedProductMarketMakerV2();
         protocolFeeSetter = msg.sender;
     }
 
@@ -129,9 +129,9 @@ contract FPMMDeterministicFactory is Create2CloneFactory, FixedProductMarketMake
         uint[] calldata distributionHint
     )
         external
-        returns (FixedProductMarketMaker)
+        returns (FixedProductMarketMakerV2)
     {
-        FixedProductMarketMaker fixedProductMarketMaker = FixedProductMarketMaker(
+        FixedProductMarketMakerV2 fixedProductMarketMaker = FixedProductMarketMakerV2(
             create2Clone(address(implementationMaster), saltNonce, abi.encode(
                 conditionalTokens,
                 collateralToken,
