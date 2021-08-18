@@ -160,33 +160,4 @@ contract FPMMDeterministicFactoryV2 is Create2CloneFactory, FixedProductMarketMa
 
         return fixedProductMarketMaker;
     }
-
-    function withdrawProtocolFees(address[] calldata _tokens, address _recipient) external onlyProtocolFeeSetter {
-        for (uint i = 0; i < _tokens.length; i++) {
-            ERC20 _token = ERC20(_tokens[i]);
-            uint _tokenBalance = _token.balanceOf(address(this));
-            if (_tokenBalance > 0) {
-                _token.transfer(_recipient, _tokenBalance);
-            }
-        }
-    }
-
-    function setProtocolFeeOn(bool _protocolFeeOn) external onlyProtocolFeeSetter {
-        protocolFeeOn = _protocolFeeOn;
-    }
-
-    function setProtocolFeeDenominator(uint8 _protocolFeeDenominator) external onlyProtocolFeeSetter {
-        require(_protocolFeeDenominator >= 4, 'max 25% protocol fee');
-        protocolFeeDenominator = _protocolFeeDenominator;
-    }
-
-    function setProtocolFeeSetter(address _protocolFeeSetter) external onlyProtocolFeeSetter {
-        require(_protocolFeeSetter != address(0), 'cannot set protocolFeeSetter to zero address');
-        protocolFeeSetter = _protocolFeeSetter;
-    }
-
-    modifier onlyProtocolFeeSetter {
-        require(msg.sender == protocolFeeSetter, 'onlyProtocolFeeSetter');
-        _;
-    }
 }
